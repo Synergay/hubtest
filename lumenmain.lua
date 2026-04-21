@@ -353,9 +353,10 @@ function Sec:_buildRow(name,desc,full,rightW)
 	end
 	local body=mk("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,LayoutOrder=1},{pad(14,0,14,0)})
 	body.Parent=row
+	if full then lst(Enum.FillDirection.Vertical,10).Parent=body end
 	rightW=rightW or 200
 	local leftW=full and UDim2.new(1,0,0,0) or UDim2.new(1,-rightW-16,0,0)
-	local left=mk("Frame",{Size=leftW,AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1},{lst(Enum.FillDirection.Vertical,3)})
+	local left=mk("Frame",{Size=leftW,AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,LayoutOrder=0},{lst(Enum.FillDirection.Vertical,3)})
 	left.Parent=body
 	if name then
 		w:_mk("TextLabel",{Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,TextSize=13,Text=name,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=0},{TextColor3="Text"},"Title").Parent=left
@@ -416,13 +417,13 @@ end
 function Sec:AddSlider(opts)
 	opts=opts or {}
 	local w=self.Window
-	local _,_,_,body=self:_buildRow(opts.Name or "Slider",opts.Description,true)
+	local _,left,_,body=self:_buildRow(opts.Name or "Slider",opts.Description,true)
 	local min,max=opts.Min or 0,opts.Max or 100
 	local step=opts.Step or 1
 	local value=math.clamp(opts.Default or min,min,max)
-	local valLbl=w:_mk("TextLabel",{Size=UDim2.new(0,120,0,16),Position=UDim2.new(1,-14,0,0),AnchorPoint=Vector2.new(1,0),BackgroundTransparency=1,TextSize=12,TextXAlignment=Enum.TextXAlignment.Right,ZIndex=2},{TextColor3="Accent"},"Mono")
-	valLbl.Parent=body
-	local wrap=mk("Frame",{Size=UDim2.new(1,0,0,20),BackgroundTransparency=1,LayoutOrder=3},{pad(10,14,0,14)})
+	local valLbl=w:_mk("TextLabel",{Size=UDim2.new(0,120,0,16),Position=UDim2.new(1,0,0,0),AnchorPoint=Vector2.new(1,0),BackgroundTransparency=1,TextSize=12,TextXAlignment=Enum.TextXAlignment.Right,ZIndex=3},{TextColor3="Accent"},"Mono")
+	valLbl.Parent=left
+	local wrap=mk("Frame",{Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,LayoutOrder=1})
 	wrap.Parent=body
 	local track=w:_mk("Frame",{Size=UDim2.new(1,0,0,4),Position=UDim2.new(0,0,0.5,-2),BorderSizePixel=0},{BackgroundColor3="Elevated"},nil,{cor(2)})
 	track.Parent=wrap
@@ -525,7 +526,7 @@ function Sec:AddDropdown(opts)
 	local btn=w:_mk("TextButton",{Size=UDim2.new(0,200,0,30),Position=UDim2.new(1,-200,0.5,-15),AutoButtonColor=false,BorderSizePixel=0,TextSize=12,Text=selected,TextXAlignment=Enum.TextXAlignment.Left},{BackgroundColor3="Elevated",TextColor3="Text"},"Body",{cor(8),pad(0,32,0,12)})
 	w:_str("Stroke",1).Parent=btn
 	btn.Parent=right
-	w:_mk("TextLabel",{Size=UDim2.new(0,16,1,0),Position=UDim2.new(1,-20,0,0),BackgroundTransparency=1,TextSize=12,Text="▾"},{TextColor3="TextMuted"},"Body").Parent=btn
+	w:_mk("TextLabel",{Size=UDim2.new(0,16,1,0),Position=UDim2.new(1,-20,0,0),BackgroundTransparency=1,TextSize=14,Text="v",Rotation=0},{TextColor3="TextMuted"},"Body").Parent=btn
 
 	local open,menu=false,nil
 	local function close() if menu then menu:Destroy() end menu=nil open=false end
@@ -691,7 +692,7 @@ function LumenUI:Notify(opts)
 	end
 	local card=mk("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=th.Surface,BorderSizePixel=0},{cor(10),strk(th.Stroke,1),pad(12,14,12,22),lst(Enum.FillDirection.Vertical,3)})
 	card.Parent=container
-	mk("Frame",{Size=UDim2.new(0,3,1,-20),Position=UDim2.new(0,-8,0,10),BackgroundColor3=th.Accent,BorderSizePixel=0},{cor(2)}).Parent=card
+	mk("Frame",{Size=UDim2.new(0,3,1,-20),Position=UDim2.new(0,8,0,10),BackgroundColor3=th.Accent,BorderSizePixel=0,ZIndex=2},{cor(2)}).Parent=card
 	mk("TextLabel",{Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,Font=fn.Title,TextSize=13,Text=opts.Title or "Notice",TextColor3=th.Text,TextXAlignment=Enum.TextXAlignment.Left}).Parent=card
 	if opts.Content then
 		mk("TextLabel",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,Font=fn.Body,TextSize=12,Text=opts.Content,TextColor3=th.TextMuted,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true}).Parent=card
