@@ -71,7 +71,8 @@ local iconMap={
 
 local function toHex(c) return string.format("#%02X%02X%02X",math.floor(c.R*255+.5),math.floor(c.G*255+.5),math.floor(c.B*255+.5)) end
 
-local LumenUI={Version="2.1.0",Flags={},_components={},_windows={},Themes=Themes,Fonts=Fonts}
+local LumenUI={Version="2.1.2",Flags={},_components={},_windows={},Themes=Themes,Fonts=Fonts}
+print("[LumenUI] v2.1.2 loaded")
 LumenUI.__index=LumenUI
 function LumenUI._bindFlag(f,o) if f then LumenUI.Flags[f]=o end end
 function LumenUI:RegisterComponent(n,f) self._components[n]=f end
@@ -690,12 +691,14 @@ function LumenUI:Notify(opts)
 		container=mk("Frame",{Name="__LumenNotify",AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,-28,1,-28),Size=UDim2.fromOffset(300,1),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1},{lst(Enum.FillDirection.Vertical,8)})
 		container.Parent=parent
 	end
-	local card=mk("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=th.Surface,BorderSizePixel=0},{cor(10),strk(th.Stroke,1),pad(12,14,12,22),lst(Enum.FillDirection.Vertical,3)})
+	local card=mk("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=th.Surface,BorderSizePixel=0,ClipsDescendants=true},{cor(10),strk(th.Stroke,1)})
 	card.Parent=container
-	mk("Frame",{Size=UDim2.new(0,3,1,-20),Position=UDim2.new(0,8,0,10),BackgroundColor3=th.Accent,BorderSizePixel=0,ZIndex=2},{cor(2)}).Parent=card
-	mk("TextLabel",{Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,Font=fn.Title,TextSize=13,Text=opts.Title or "Notice",TextColor3=th.Text,TextXAlignment=Enum.TextXAlignment.Left}).Parent=card
+	local inner=mk("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1},{pad(12,14,12,22),lst(Enum.FillDirection.Vertical,3)})
+	inner.Parent=card
+	mk("Frame",{AnchorPoint=Vector2.new(0,0.5),Size=UDim2.new(0,3,1,-20),Position=UDim2.new(0,8,0.5,0),BackgroundColor3=th.Accent,BorderSizePixel=0,ZIndex=2},{cor(2)}).Parent=card
+	mk("TextLabel",{Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,Font=fn.Title,TextSize=13,Text=opts.Title or "Notice",TextColor3=th.Text,TextXAlignment=Enum.TextXAlignment.Left}).Parent=inner
 	if opts.Content then
-		mk("TextLabel",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,Font=fn.Body,TextSize=12,Text=opts.Content,TextColor3=th.TextMuted,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true}).Parent=card
+		mk("TextLabel",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,Font=fn.Body,TextSize=12,Text=opts.Content,TextColor3=th.TextMuted,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true}).Parent=inner
 	end
 	task.delay(opts.Duration or 4,function()
 		if card and card.Parent then
