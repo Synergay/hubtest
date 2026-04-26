@@ -74,8 +74,8 @@ local Theme = {
     Text        = Color3.fromHex("dddde8"),
     TextMuted   = Color3.fromHex("52526a"),
     TextDim     = Color3.fromHex("2e2e3a"),
-    Accent      = Color3.fromHex("5865f2"),
-    AccentLight = Color3.fromHex("6875f5"),
+    Accent      = Color3.fromHex("d946ef"),
+    AccentLight = Color3.fromHex("e879f9"),
     Green       = Color3.fromHex("22c55e"),
     Red         = Color3.fromHex("ef4444"),
     Yellow      = Color3.fromHex("eab308"),
@@ -175,7 +175,7 @@ function UILibrary:CreateWindow(title, subtitle)
     InitNotifs(gui)
 
     -- ── Main Frame
-    local PANEL_W, PANEL_H = 540, 520
+    local PANEL_W, PANEL_H = 620, 540
     local main = Create("Frame", {
         Name = "MainPanel",
         Parent = gui,
@@ -199,32 +199,23 @@ function UILibrary:CreateWindow(title, subtitle)
     local titleBar = Create("Frame", {
         Name = "TitleBar",
         Parent = main,
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, 44),
         BackgroundColor3 = Color3.fromHex("ffffff"),
         BackgroundTransparency = 0.98,
         ZIndex = 2,
     }, {
         Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
-        -- accent dot
-        Create("Frame", {
-            Name = "Dot",
-            Size = UDim2.new(0, 7, 0, 7),
-            Position = UDim2.new(0, 14, 0.5, -3.5),
-            BackgroundColor3 = Theme.Accent,
-        }, { MakeCorner(99) }),
-        -- title
         Create("TextLabel", {
             Name = "Title",
             Text = title,
             TextColor3 = Theme.Text,
-            TextSize = 13,
+            TextSize = 14,
             Font = Enum.Font.GothamBold,
             Size = UDim2.new(0, 200, 1, 0),
-            Position = UDim2.new(0, 28, 0, 0),
+            Position = UDim2.new(0, 16, 0, 0),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
         }),
-        -- subtitle
         Create("TextLabel", {
             Name = "Subtitle",
             Text = subtitle,
@@ -232,23 +223,55 @@ function UILibrary:CreateWindow(title, subtitle)
             TextSize = 11,
             Font = Enum.Font.Gotham,
             Size = UDim2.new(0, 200, 1, 0),
-            Position = UDim2.new(0, 120, 0, 0),
+            Position = UDim2.new(0, 16 + (#title * 8) + 8, 0, 0),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
         }),
-        -- close button
-        Create("TextButton", {
-            Name = "CloseBtn",
-            Text = "×",
-            TextColor3 = Theme.TextMuted,
-            TextSize = 16,
-            Font = Enum.Font.Gotham,
-            Size = UDim2.new(0, 24, 0, 24),
-            Position = UDim2.new(1, -32, 0.5, -12),
-            BackgroundColor3 = Theme.Hover,
-            BackgroundTransparency = 1,
-        }, { MakeCorner(5) }),
     })
+
+    local iconRow = Create("Frame", {
+        Name = "IconRow",
+        Parent = titleBar,
+        Size = UDim2.new(0, 188, 0, 28),
+        Position = UDim2.new(1, -200, 0.5, -14),
+        BackgroundTransparency = 1,
+    }, {
+        Create("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+            VerticalAlignment = Enum.VerticalAlignment.Center,
+            Padding = UDim.new(0, 4),
+        })
+    })
+
+    local function makeIconBtn(name, glyph, glyphSize)
+        return Create("TextButton", {
+            Name = name,
+            Parent = iconRow,
+            Size = UDim2.new(0, 30, 0, 28),
+            BackgroundColor3 = Color3.fromHex("ffffff"),
+            BackgroundTransparency = 0.95,
+            Text = glyph,
+            TextColor3 = Theme.TextMuted,
+            TextSize = glyphSize or 13,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+        }, {
+            MakeCorner(7),
+            Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
+        })
+    end
+
+    local searchBtn   = makeIconBtn("SearchBtn",   "⌕", 14)
+    local sparkleBtn  = makeIconBtn("SparkleBtn",  "✦", 12)
+    local settingsBtn = makeIconBtn("SettingsBtn", "⚙", 13)
+    local minBtn      = makeIconBtn("MinBtn",      "—", 11)
+    local closeBtn    = makeIconBtn("CloseBtn",    "✕", 11)
+
+    for _, b in ipairs({searchBtn, sparkleBtn, settingsBtn, minBtn, closeBtn}) do
+        b.MouseEnter:Connect(function() Tween(b, { BackgroundTransparency = 0.88 }, 0.1); b.TextColor3 = Theme.Text end)
+        b.MouseLeave:Connect(function() Tween(b, { BackgroundTransparency = 0.95 }, 0.1); b.TextColor3 = Theme.TextMuted end)
+    end
 
     -- drag
     local dragging, dragStart, startPos = false, nil, nil
@@ -276,43 +299,26 @@ function UILibrary:CreateWindow(title, subtitle)
         end
     end)
 
-    -- close
-    local closeBtn = titleBar:FindFirstChild("CloseBtn")
-    closeBtn.MouseEnter:Connect(function()
-        Tween(closeBtn, { BackgroundTransparency = 0.85, TextColor3 = Theme.Red }, 0.1)
-    end)
-    closeBtn.MouseLeave:Connect(function()
-        Tween(closeBtn, { BackgroundTransparency = 1, TextColor3 = Theme.TextMuted }, 0.1)
-    end)
     closeBtn.MouseButton1Click:Connect(function()
         Tween(main, { Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0) }, 0.25)
         task.wait(0.25)
         gui:Destroy()
     end)
+    minBtn.MouseButton1Click:Connect(function()
+        main.Visible = false
+    end)
 
     -- ── Sidebar
+    local SIDEBAR_W = 130
     local sidebar = Create("Frame", {
         Name = "Sidebar",
         Parent = main,
-        Size = UDim2.new(0, 110, 1, -40),
-        Position = UDim2.new(0, 0, 0, 40),
+        Size = UDim2.new(0, SIDEBAR_W, 1, -44),
+        Position = UDim2.new(0, 0, 0, 44),
         BackgroundColor3 = Color3.fromHex("000000"),
         BackgroundTransparency = 0.85,
     }, {
         Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
-    })
-
-    local tabList = Create("Frame", {
-        Name = "TabList",
-        Parent = sidebar,
-        Size = UDim2.new(1, 0, 0, 400),
-        Position = UDim2.new(0, 0, 0, 36),
-        BackgroundTransparency = 1,
-    }, {
-        Create("UIListLayout", {
-            FillDirection = Enum.FillDirection.Vertical,
-            Padding = UDim.new(0, 1),
-        })
     })
 
     -- home icon
@@ -320,45 +326,81 @@ function UILibrary:CreateWindow(title, subtitle)
         Parent = sidebar,
         Text = "⌂",
         TextColor3 = Theme.TextMuted,
-        TextSize = 14,
-        Font = Enum.Font.Gotham,
-        Size = UDim2.new(1, -16, 0, 30),
-        Position = UDim2.new(0, 16, 0, 4),
+        TextSize = 16,
+        Font = Enum.Font.GothamBold,
+        Size = UDim2.new(1, -28, 0, 30),
+        Position = UDim2.new(0, 14, 0, 8),
         BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
     })
 
-    -- user at bottom
+    local tabList = Create("Frame", {
+        Name = "TabList",
+        Parent = sidebar,
+        Size = UDim2.new(1, -16, 1, -120),
+        Position = UDim2.new(0, 8, 0, 50),
+        BackgroundTransparency = 1,
+    }, {
+        Create("UIListLayout", {
+            FillDirection = Enum.FillDirection.Vertical,
+            Padding = UDim.new(0, 4),
+        })
+    })
+
+    -- user at bottom (with avatar)
+    local avatarUrl = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=60&h=60"
     local userFrame = Create("Frame", {
         Name = "User",
         Parent = sidebar,
-        Size = UDim2.new(1, 0, 0, 46),
-        Position = UDim2.new(0, 0, 1, -46),
+        Size = UDim2.new(1, -16, 0, 50),
+        Position = UDim2.new(0, 8, 1, -58),
         BackgroundTransparency = 1,
     }, {
-        Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
-        MakePadding(8, 14, 8, 14),
+        Create("ImageLabel", {
+            Name = "Avatar",
+            Image = avatarUrl,
+            Size = UDim2.new(0, 32, 0, 32),
+            Position = UDim2.new(0, 0, 0.5, -16),
+            BackgroundColor3 = Theme.Raised,
+            BorderSizePixel = 0,
+        }, {
+            MakeCorner(99),
+            Create("UIStroke", { Color = Theme.Border, Transparency = 0.85, Thickness = 1 }),
+            Create("Frame", {
+                Name = "Status",
+                Size = UDim2.new(0, 9, 0, 9),
+                Position = UDim2.new(1, -9, 0, 0),
+                BackgroundColor3 = Theme.Red,
+                BorderSizePixel = 0,
+                ZIndex = 3,
+            }, {
+                MakeCorner(99),
+                Create("UIStroke", { Color = Theme.Panel, Thickness = 2 }),
+            }),
+        }),
         Create("TextLabel", {
             Name = "Username",
             Text = LocalPlayer.DisplayName,
             TextColor3 = Theme.Text,
-            TextSize = 10,
+            TextSize = 11,
             Font = Enum.Font.GothamBold,
-            Size = UDim2.new(1, 0, 0, 13),
-            Position = UDim2.new(0, 30, 0, 10),
+            Size = UDim2.new(1, -40, 0, 14),
+            Position = UDim2.new(0, 40, 0.5, -14),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
         }),
         Create("TextLabel", {
             Name = "Handle",
             Text = "@" .. LocalPlayer.Name,
             TextColor3 = Theme.TextMuted,
-            TextSize = 9,
+            TextSize = 10,
             Font = Enum.Font.Gotham,
-            Size = UDim2.new(1, 0, 0, 11),
-            Position = UDim2.new(0, 30, 0, 24),
+            Size = UDim2.new(1, -40, 0, 12),
+            Position = UDim2.new(0, 40, 0.5, 2),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
         }),
     })
 
@@ -366,8 +408,8 @@ function UILibrary:CreateWindow(title, subtitle)
     local contentOuter = Create("Frame", {
         Name = "ContentOuter",
         Parent = main,
-        Size = UDim2.new(1, -110, 1, -50),
-        Position = UDim2.new(0, 110, 0, 40),
+        Size = UDim2.new(1, -SIDEBAR_W, 1, -44),
+        Position = UDim2.new(0, SIDEBAR_W, 0, 44),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
     })
@@ -384,35 +426,78 @@ function UILibrary:CreateWindow(title, subtitle)
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
     }, {
-        MakePadding(14, 16, 14, 0),
+        MakePadding(16, 18, 44, 18),
         Create("UIListLayout", {
             FillDirection = Enum.FillDirection.Vertical,
-            Padding = UDim.new(0, 3),
+            Padding = UDim.new(0, 8),
             SortOrder = Enum.SortOrder.LayoutOrder,
         }),
     })
 
-    -- status bar
-    Create("Frame", {
-        Name = "StatusBar",
+    -- floating clock + FPS pill (top-left of content)
+    local statusPill = Create("Frame", {
+        Name = "StatusPill",
         Parent = main,
-        Size = UDim2.new(1, 0, 0, 22),
-        Position = UDim2.new(0, 0, 1, -22),
-        BackgroundColor3 = Color3.fromHex("000000"),
-        BackgroundTransparency = 0.8,
+        Size = UDim2.new(0, 116, 0, 24),
+        Position = UDim2.new(0, SIDEBAR_W + 16, 1, -32),
+        BackgroundColor3 = Theme.Raised,
+        BackgroundTransparency = 0.1,
+        ZIndex = 5,
     }, {
-        Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
+        MakeCorner(99),
+        Create("UIStroke", { Color = Theme.Border, Transparency = 0.88, Thickness = 1 }),
         Create("TextLabel", {
-            Text = "v1.0.0 · MIT License",
-            TextColor3 = Theme.TextDim,
-            TextSize = 9,
-            Font = Enum.Font.Gotham,
-            Size = UDim2.new(1, -20, 1, 0),
-            Position = UDim2.new(0, 14, 0, 0),
+            Name = "Clock",
+            Text = "0:00",
+            TextColor3 = Theme.TextMuted,
+            TextSize = 10,
+            Font = Enum.Font.GothamMedium,
+            Size = UDim2.new(0, 36, 1, 0),
+            Position = UDim2.new(0, 10, 0, 0),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
         }),
+        Create("Frame", {
+            Size = UDim2.new(0, 1, 0, 10),
+            Position = UDim2.new(0, 46, 0.5, -5),
+            BackgroundColor3 = Theme.Border,
+            BackgroundTransparency = 0.85,
+            BorderSizePixel = 0,
+        }),
+        Create("TextLabel", {
+            Name = "FPS",
+            Text = "0 FPS",
+            TextColor3 = Theme.Text,
+            TextSize = 10,
+            Font = Enum.Font.GothamBold,
+            Size = UDim2.new(0, 50, 1, 0),
+            Position = UDim2.new(0, 52, 0, 0),
+            BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+        }),
+        Create("Frame", {
+            Size = UDim2.new(0, 6, 0, 6),
+            Position = UDim2.new(1, -14, 0.5, -3),
+            BackgroundColor3 = Theme.Green,
+            BorderSizePixel = 0,
+        }, { MakeCorner(99) }),
     })
+
+    do
+        local fpsCount, fpsAcc, fpsConn = 0, 0, nil
+        local clockLbl = statusPill:FindFirstChild("Clock")
+        local fpsLbl = statusPill:FindFirstChild("FPS")
+        fpsConn = RunService.Heartbeat:Connect(function(dt)
+            fpsAcc += dt; fpsCount += 1
+            if fpsAcc >= 0.5 then
+                fpsLbl.Text = math.floor(fpsCount / fpsAcc) .. " FPS"
+                fpsAcc, fpsCount = 0, 0
+                local h, m = math.floor(tick() % 86400 / 3600), math.floor(tick() % 3600 / 60)
+                clockLbl.Text = string.format("%d:%02d", (h % 12 == 0) and 12 or h % 12, m)
+            end
+        end)
+        gui.Destroying:Connect(function() if fpsConn then fpsConn:Disconnect() end end)
+    end
 
     -- ── Window API
     local Window = {}
@@ -432,26 +517,21 @@ function UILibrary:CreateWindow(title, subtitle)
         local tabBtn = Create("TextButton", {
             Name = name .. "Tab",
             Parent = tabList,
-            Size = UDim2.new(1, 0, 0, 34),
+            Size = UDim2.new(1, 0, 0, 32),
+            BackgroundColor3 = Color3.fromHex("ffffff"),
             BackgroundTransparency = 1,
             Text = "",
             AutoButtonColor = false,
+        }, {
+            MakeCorner(7),
+            Create("UIStroke", { Name = "TabStroke", Color = Theme.Border, Transparency = 1, Thickness = 1 }),
         })
-
-        local indicator = Create("Frame", {
-            Name = "Indicator",
-            Parent = tabBtn,
-            Size = UDim2.new(0, 2, 0.6, 0),
-            Position = UDim2.new(0, 0, 0.2, 0),
-            BackgroundColor3 = Theme.Accent,
-            BackgroundTransparency = 1,
-        }, { MakeCorner(2) })
 
         local dot = Create("Frame", {
             Name = "Dot",
             Parent = tabBtn,
-            Size = UDim2.new(0, 4, 0, 4),
-            Position = UDim2.new(1, -16, 0.5, -2),
+            Size = UDim2.new(0, 6, 0, 6),
+            Position = UDim2.new(1, -14, 0.5, -3),
             BackgroundColor3 = Theme.Accent,
             BackgroundTransparency = 1,
         }, { MakeCorner(99) })
@@ -462,7 +542,7 @@ function UILibrary:CreateWindow(title, subtitle)
             Text = name,
             TextColor3 = Theme.TextMuted,
             TextSize = 12,
-            Font = Enum.Font.Gotham,
+            Font = Enum.Font.GothamMedium,
             Size = UDim2.new(1, -24, 1, 0),
             Position = UDim2.new(0, 12, 0, 0),
             BackgroundTransparency = 1,
@@ -492,20 +572,20 @@ function UILibrary:CreateWindow(title, subtitle)
         Tab._window = Window
 
         local function activate()
-            -- deactivate others
             for _, t in pairs(Window._tabs) do
-                Tween(t._btn:FindFirstChild("Label"), { TextColor3 = Theme.TextMuted, Font = Enum.Font.Gotham }, 0.12)
-                Tween(t._btn:FindFirstChild("Indicator"), { BackgroundTransparency = 1 }, 0.12)
+                local lbl = t._btn:FindFirstChild("Label")
+                lbl.Font = Enum.Font.GothamMedium
+                Tween(lbl, { TextColor3 = Theme.TextMuted }, 0.12)
                 Tween(t._btn:FindFirstChild("Dot"), { BackgroundTransparency = 1 }, 0.12)
-                t._btn.BackgroundTransparency = 1
+                Tween(t._btn:FindFirstChild("TabStroke"), { Transparency = 1 }, 0.12)
+                Tween(t._btn, { BackgroundTransparency = 1 }, 0.12)
                 t._frame.Visible = false
             end
-            -- activate this
-            Tween(label, { TextColor3 = Theme.Text, Font = Enum.Font.GothamBold }, 0.12)
-            Tween(indicator, { BackgroundTransparency = 0 }, 0.15)
+            label.Font = Enum.Font.GothamBold
+            Tween(label, { TextColor3 = Theme.Text }, 0.12)
             Tween(dot, { BackgroundTransparency = 0 }, 0.15)
-            tabBtn.BackgroundColor3 = Theme.Accent
-            tabBtn.BackgroundTransparency = 0.88
+            Tween(tabBtn:FindFirstChild("TabStroke"), { Transparency = 0.85 }, 0.15)
+            Tween(tabBtn, { BackgroundTransparency = 0.92 }, 0.15)
             tabFrame.Visible = true
             Window._activeTab = Tab
         end
@@ -513,13 +593,14 @@ function UILibrary:CreateWindow(title, subtitle)
         tabBtn.MouseButton1Click:Connect(activate)
         tabBtn.MouseEnter:Connect(function()
             if Window._activeTab ~= Tab then
-                Tween(tabBtn, { BackgroundTransparency = 0.94 }, 0.1)
-                tabBtn.BackgroundColor3 = Color3.fromHex("ffffff")
+                Tween(tabBtn, { BackgroundTransparency = 0.96 }, 0.1)
+                Tween(tabBtn:FindFirstChild("Label"), { TextColor3 = Theme.Text }, 0.1)
             end
         end)
         tabBtn.MouseLeave:Connect(function()
             if Window._activeTab ~= Tab then
                 Tween(tabBtn, { BackgroundTransparency = 1 }, 0.1)
+                Tween(tabBtn:FindFirstChild("Label"), { TextColor3 = Theme.TextMuted }, 0.1)
             end
         end)
 
@@ -537,24 +618,13 @@ function UILibrary:CreateWindow(title, subtitle)
             Create("TextLabel", {
                 Name = "Section_" .. text,
                 Parent = tabFrame,
-                Text = text:upper(),
-                TextColor3 = Theme.TextMuted,
-                TextSize = 10,
+                Text = text,
+                TextColor3 = Theme.Text,
+                TextSize = 16,
                 Font = Enum.Font.GothamBold,
-                Size = UDim2.new(1, 0, 0, 20),
+                Size = UDim2.new(1, 0, 0, 28),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                LayoutOrder = Tab._order,
-            }, { MakePadding(6, 0, 2, 0) })
-
-            Create("Frame", {
-                Name = "Divider",
-                Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, 1),
-                Position = UDim2.new(0, 0, 0, 0),
-                BackgroundColor3 = Theme.Border,
-                BackgroundTransparency = 0.94,
-                BorderSizePixel = 0,
                 LayoutOrder = Tab._order,
             })
         end
@@ -566,25 +636,35 @@ function UILibrary:CreateWindow(title, subtitle)
             local row = Create("TextButton", {
                 Name = "Button_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, sub and 46 or 34),
+                Size = UDim2.new(1, 0, 0, sub and 56 or 44),
                 BackgroundColor3 = Theme.Raised,
                 BackgroundTransparency = 0,
                 Text = "",
                 AutoButtonColor = false,
                 LayoutOrder = self._order,
             }, {
-                MakeCorner(6),
+                MakeCorner(8),
                 Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
                 Create("TextLabel", {
                     Name = "Label",
                     Text = text,
                     TextColor3 = Theme.Text,
-                    TextSize = 12.5,
+                    TextSize = 13,
                     Font = Enum.Font.GothamMedium,
-                    Size = UDim2.new(1, -30, 0, 18),
-                    Position = UDim2.new(0, 12, 0, sub and 8 or 8),
+                    Size = UDim2.new(1, -40, 0, 18),
+                    Position = UDim2.new(0, 14, 0, sub and 10 or 13),
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                }),
+                Create("TextLabel", {
+                    Name = "Chevron",
+                    Text = "›",
+                    TextColor3 = Theme.TextMuted,
+                    TextSize = 18,
+                    Font = Enum.Font.GothamBold,
+                    Size = UDim2.new(0, 18, 1, 0),
+                    Position = UDim2.new(1, -22, 0, -1),
+                    BackgroundTransparency = 1,
                 }),
             })
 
@@ -593,10 +673,10 @@ function UILibrary:CreateWindow(title, subtitle)
                     Parent = row,
                     Text = sub,
                     TextColor3 = Theme.TextMuted,
-                    TextSize = 10.5,
+                    TextSize = 11,
                     Font = Enum.Font.Gotham,
-                    Size = UDim2.new(1, -30, 0, 14),
-                    Position = UDim2.new(0, 12, 0, 26),
+                    Size = UDim2.new(1, -40, 0, 14),
+                    Position = UDim2.new(0, 14, 0, 30),
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
                 })
@@ -615,21 +695,22 @@ function UILibrary:CreateWindow(title, subtitle)
 
         -- ── Hold Button ───────────────────────────────────────────────────
         function Tab:AddHoldButton(text, sub, duration, callback)
-            if type(sub) == "function" then callback = sub; sub = nil; duration = sub end
+            if type(sub) == "function" then callback = sub; sub = nil; duration = nil end
+            if type(duration) == "function" then callback = duration; duration = nil end
             duration = duration or 2
             self._order += 1
 
             local row = Create("TextButton", {
                 Name = "HoldBtn_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, sub and 46 or 34),
+                Size = UDim2.new(1, 0, 0, sub and 56 or 44),
                 BackgroundColor3 = Theme.Raised,
                 Text = "",
                 AutoButtonColor = false,
                 ClipsDescendants = true,
                 LayoutOrder = self._order,
             }, {
-                MakeCorner(6),
+                MakeCorner(8),
                 Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
             })
 
@@ -638,7 +719,7 @@ function UILibrary:CreateWindow(title, subtitle)
                 Parent = row,
                 Size = UDim2.new(0, 0, 1, 0),
                 BackgroundColor3 = Theme.Accent,
-                BackgroundTransparency = 0.85,
+                BackgroundTransparency = 0.78,
                 BorderSizePixel = 0,
             })
 
@@ -646,22 +727,36 @@ function UILibrary:CreateWindow(title, subtitle)
                 Parent = row,
                 Text = text,
                 TextColor3 = Theme.Text,
-                TextSize = 12.5,
+                TextSize = 13,
                 Font = Enum.Font.GothamMedium,
-                Size = UDim2.new(1, -60, 1, 0),
-                Position = UDim2.new(0, 12, 0, 0),
+                Size = UDim2.new(1, -60, 0, 18),
+                Position = UDim2.new(0, 14, 0, sub and 10 or 13),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
 
+            if sub then
+                Create("TextLabel", {
+                    Parent = row,
+                    Text = sub,
+                    TextColor3 = Theme.TextMuted,
+                    TextSize = 11,
+                    Font = Enum.Font.Gotham,
+                    Size = UDim2.new(1, -60, 0, 14),
+                    Position = UDim2.new(0, 14, 0, 30),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+            end
+
             local pctLabel = Create("TextLabel", {
                 Parent = row,
-                Text = "hold",
+                Text = "⊙",
                 TextColor3 = Theme.TextMuted,
-                TextSize = 10,
+                TextSize = 16,
                 Font = Enum.Font.GothamBold,
-                Size = UDim2.new(0, 50, 1, 0),
-                Position = UDim2.new(1, -60, 0, 0),
+                Size = UDim2.new(0, 30, 1, 0),
+                Position = UDim2.new(1, -36, 0, 0),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Right,
             })
@@ -677,16 +772,15 @@ function UILibrary:CreateWindow(title, subtitle)
                     local elapsed = tick() - startT
                     local pct = math.min(elapsed / duration, 1)
                     fill.Size = UDim2.new(pct, 0, 1, 0)
-                    pctLabel.Text = math.floor(pct * 100) .. "%"
+                    pctLabel.Text = pct < 1 and (math.floor(pct * 100) .. "%") or "✓"
                     if pct >= 1 then
                         connection:Disconnect()
                         holding = false
-                        pctLabel.Text = "✓"
                         Tween(fill, { BackgroundColor3 = Theme.Green }, 0.2)
                         if callback then task.spawn(callback) end
                         task.wait(1.2)
                         Tween(fill, { Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = Theme.Accent }, 0.3)
-                        pctLabel.Text = "hold"
+                        pctLabel.Text = "⊙"
                     end
                 end)
             end)
@@ -696,7 +790,7 @@ function UILibrary:CreateWindow(title, subtitle)
                 holding = false
                 if connection then connection:Disconnect() end
                 Tween(fill, { Size = UDim2.new(0, 0, 1, 0) }, 0.2)
-                pctLabel.Text = "hold"
+                pctLabel.Text = "⊙"
             end)
 
             return row
@@ -712,59 +806,74 @@ function UILibrary:CreateWindow(title, subtitle)
             local row = Create("TextButton", {
                 Name = "Toggle_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, sub and 46 or 34),
-                BackgroundColor3 = Theme.Panel,
-                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, sub and 56 or 44),
+                BackgroundColor3 = Theme.Raised,
+                BackgroundTransparency = 0,
                 Text = "",
                 AutoButtonColor = false,
                 LayoutOrder = self._order,
-            }, { MakeCorner(6) })
+            }, {
+                MakeCorner(8),
+                Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
+            })
 
             Create("TextLabel", {
                 Parent = row,
                 Text = text,
                 TextColor3 = Theme.Text,
-                TextSize = 12.5,
+                TextSize = 13,
                 Font = Enum.Font.GothamMedium,
                 Size = UDim2.new(1, -60, 0, 18),
-                Position = UDim2.new(0, 12, 0, sub and 8 or 8),
+                Position = UDim2.new(0, 14, 0, sub and 10 or 13),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
 
-            -- pill
+            if sub then
+                Create("TextLabel", {
+                    Parent = row,
+                    Text = sub,
+                    TextColor3 = Theme.TextMuted,
+                    TextSize = 11,
+                    Font = Enum.Font.Gotham,
+                    Size = UDim2.new(1, -60, 0, 14),
+                    Position = UDim2.new(0, 14, 0, 30),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+            end
+
             local pill = Create("Frame", {
                 Name = "Pill",
                 Parent = row,
-                Size = UDim2.new(0, 32, 0, 17),
-                Position = UDim2.new(1, -44, 0.5, -8.5),
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(1, -28, 0.5, -7),
                 BackgroundColor3 = state and Theme.Accent or Color3.fromHex("2e2e3a"),
-            }, { MakeCorner(99) })
+                BackgroundTransparency = state and 0 or 0,
+            }, {
+                MakeCorner(99),
+                Create("UIStroke", { Name = "PillStroke", Color = state and Theme.Accent or Theme.TextMuted, Transparency = state and 0 or 0.4, Thickness = 1 }),
+            })
 
             local thumb = Create("Frame", {
                 Name = "Thumb",
                 Parent = pill,
-                Size = UDim2.new(0, 11, 0, 11),
-                Position = state
-                    and UDim2.new(1, -13, 0.5, -5.5)
-                    or  UDim2.new(0, 2,   0.5, -5.5),
+                Size = UDim2.new(0, 6, 0, 6),
+                Position = UDim2.new(0.5, -3, 0.5, -3),
                 BackgroundColor3 = state and Color3.fromHex("ffffff") or Theme.TextMuted,
+                BackgroundTransparency = state and 0 or 1,
             }, { MakeCorner(99) })
 
             local function setToggle(newState)
                 state = newState
-                Tween(pill,  { BackgroundColor3 = state and Theme.Accent or Color3.fromHex("2e2e3a") }, 0.2)
-                Tween(thumb, { BackgroundColor3 = state and Color3.fromHex("ffffff") or Theme.TextMuted }, 0.2)
-                Tween(thumb, {
-                    Position = state
-                        and UDim2.new(1, -13, 0.5, -5.5)
-                        or  UDim2.new(0, 2,   0.5, -5.5)
-                }, 0.2, Enum.EasingStyle.Quart)
+                Tween(pill, { BackgroundColor3 = state and Theme.Accent or Color3.fromHex("2e2e3a") }, 0.2)
+                Tween(pill:FindFirstChild("PillStroke"), { Color = state and Theme.Accent or Theme.TextMuted, Transparency = state and 0 or 0.4 }, 0.2)
+                Tween(thumb, { BackgroundTransparency = state and 0 or 1 }, 0.2)
                 if callback then task.spawn(callback, state) end
             end
 
-            row.MouseEnter:Connect(function() Tween(row, { BackgroundTransparency = 0.94 }, 0.1); row.BackgroundColor3 = Color3.fromHex("ffffff") end)
-            row.MouseLeave:Connect(function() Tween(row, { BackgroundTransparency = 1 }, 0.1) end)
+            row.MouseEnter:Connect(function() Tween(row, { BackgroundColor3 = Theme.Hover }, 0.1) end)
+            row.MouseLeave:Connect(function() Tween(row, { BackgroundColor3 = Theme.Raised }, 0.1) end)
             row.MouseButton1Click:Connect(function() setToggle(not state) end)
 
             return { SetValue = setToggle, GetValue = function() return state end }
@@ -781,20 +890,23 @@ function UILibrary:CreateWindow(title, subtitle)
             local row = Create("Frame", {
                 Name = "Slider_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, 50),
-                BackgroundColor3 = Theme.Panel,
-                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 60),
+                BackgroundColor3 = Theme.Raised,
+                BackgroundTransparency = 0,
                 LayoutOrder = self._order,
-            }, { MakeCorner(6) })
+            }, {
+                MakeCorner(8),
+                Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
+            })
 
-            local labelEl = Create("TextLabel", {
+            local _ = Create("TextLabel", {
                 Parent = row,
                 Text = text,
                 TextColor3 = Theme.Text,
-                TextSize = 12.5,
+                TextSize = 13,
                 Font = Enum.Font.GothamMedium,
-                Size = UDim2.new(1, -60, 0, 18),
-                Position = UDim2.new(0, 12, 0, 8),
+                Size = UDim2.new(1, -70, 0, 18),
+                Position = UDim2.new(0, 14, 0, 10),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
@@ -806,7 +918,7 @@ function UILibrary:CreateWindow(title, subtitle)
                 TextSize = 11,
                 Font = Enum.Font.GothamBold,
                 Size = UDim2.new(0, 50, 0, 18),
-                Position = UDim2.new(1, -60, 0, 8),
+                Position = UDim2.new(1, -60, 0, 10),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Right,
             })
@@ -814,8 +926,8 @@ function UILibrary:CreateWindow(title, subtitle)
             local track = Create("Frame", {
                 Name = "Track",
                 Parent = row,
-                Size = UDim2.new(1, -24, 0, 3),
-                Position = UDim2.new(0, 12, 0, 36),
+                Size = UDim2.new(1, -28, 0, 3),
+                Position = UDim2.new(0, 14, 0, 42),
                 BackgroundColor3 = Color3.fromHex("2e2e3a"),
             }, { MakeCorner(2) })
 
@@ -880,38 +992,49 @@ function UILibrary:CreateWindow(title, subtitle)
             }
         end
 
-        -- ── Dropdown ──────────────────────────────────────────────────────
-        function Tab:AddDropdown(text, options, default, callback)
-            self._order += 1
-            local selected = default or options[1]
+        -- ── Dropdown ─────────────────────────────────────────────────────
+        local function buildDropdown(text, options, default, multi, placeholder, callback)
+            Tab._order += 1
+            local selected = multi and (type(default) == "table" and default or {}) or (default or nil)
+            local function display()
+                if multi then
+                    if #selected == 0 then return placeholder or "Pick many..." end
+                    return table.concat(selected, ", ")
+                end
+                return selected or (placeholder or "Pick one...")
+            end
 
             local wrapper = Create("Frame", {
                 Name = "Dropdown_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, 56),
-                BackgroundTransparency = 1,
-                LayoutOrder = self._order,
+                Size = UDim2.new(1, 0, 0, 70),
+                BackgroundColor3 = Theme.Raised,
+                BackgroundTransparency = 0,
+                LayoutOrder = Tab._order,
                 ClipsDescendants = false,
                 ZIndex = 10,
+            }, {
+                MakeCorner(8),
+                Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
             })
 
             Create("TextLabel", {
                 Parent = wrapper,
                 Text = text,
-                TextColor3 = Theme.TextMuted,
-                TextSize = 11,
+                TextColor3 = Theme.Text,
+                TextSize = 13,
                 Font = Enum.Font.GothamMedium,
-                Size = UDim2.new(1, 0, 0, 16),
-                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(1, -28, 0, 18),
+                Position = UDim2.new(0, 14, 0, 10),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
 
             local btn = Create("TextButton", {
                 Parent = wrapper,
-                Size = UDim2.new(1, 0, 0, 34),
-                Position = UDim2.new(0, 0, 0, 20),
-                BackgroundColor3 = Theme.Raised,
+                Size = UDim2.new(1, -20, 0, 30),
+                Position = UDim2.new(0, 10, 0, 32),
+                BackgroundColor3 = Theme.Hover,
                 Text = "",
                 AutoButtonColor = false,
                 ZIndex = 11,
@@ -920,117 +1043,183 @@ function UILibrary:CreateWindow(title, subtitle)
                 Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
                 Create("TextLabel", {
                     Name = "SelLabel",
-                    Text = selected,
-                    TextColor3 = Theme.Text,
-                    TextSize = 12.5,
+                    Text = display(),
+                    TextColor3 = (multi and #selected == 0) or (not multi and not selected) and Theme.TextMuted or Theme.Text,
+                    TextSize = 12,
                     Font = Enum.Font.GothamMedium,
-                    Size = UDim2.new(1, -30, 1, 0),
+                    Size = UDim2.new(1, -34, 1, 0),
                     Position = UDim2.new(0, 12, 0, 0),
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                 }),
                 Create("TextLabel", {
+                    Name = "Arrow",
                     Text = "▾",
                     TextColor3 = Theme.TextMuted,
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.GothamBold,
                     Size = UDim2.new(0, 20, 1, 0),
-                    Position = UDim2.new(1, -24, 0, 0),
+                    Position = UDim2.new(1, -26, 0, 0),
                     BackgroundTransparency = 1,
                 }),
             })
 
-            local dropList = nil
-            local open = false
+            local function refreshLabel()
+                local lbl = btn:FindFirstChild("SelLabel")
+                lbl.Text = display()
+                local empty = (multi and #selected == 0) or (not multi and not selected)
+                lbl.TextColor3 = empty and Theme.TextMuted or Theme.Text
+            end
+
+            local dropList
+            local function close()
+                if dropList then dropList:Destroy(); dropList = nil end
+                Tween(btn:FindFirstChild("Arrow"), { Rotation = 0 }, 0.15)
+            end
 
             btn.MouseButton1Click:Connect(function()
-                if dropList then dropList:Destroy(); dropList = nil; open = false; return end
-                open = true
+                if dropList then close(); return end
+                Tween(btn:FindFirstChild("Arrow"), { Rotation = 180 }, 0.15)
+                local h = math.min(#options, 6) * 30 + 8
                 dropList = Create("Frame", {
                     Parent = wrapper,
-                    Size = UDim2.new(1, 0, 0, #options * 32),
-                    Position = UDim2.new(0, 0, 0, 54),
+                    Size = UDim2.new(1, -20, 0, h),
+                    Position = UDim2.new(0, 10, 0, 68),
                     BackgroundColor3 = Theme.Raised,
-                    ZIndex = 20,
+                    ZIndex = 30,
                 }, {
-                    MakeCorner(6),
-                    Create("UIStroke", { Color = Theme.Accent, Transparency = 0, Thickness = 1 }),
-                    Create("UIListLayout", { FillDirection = Enum.FillDirection.Vertical }),
+                    MakeCorner(8),
+                    Create("UIStroke", { Color = Theme.Accent, Transparency = 0.4, Thickness = 1 }),
+                    MakePadding(4, 4, 4, 4),
                 })
+                local scroll = Create("ScrollingFrame", {
+                    Parent = dropList,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    ScrollBarThickness = 2,
+                    ScrollBarImageColor3 = Theme.TextMuted,
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    ZIndex = 31,
+                }, { Create("UIListLayout", { Padding = UDim.new(0, 2) }) })
 
                 for _, opt in ipairs(options) do
+                    local isSel = multi and table.find(selected, opt) ~= nil or (not multi and selected == opt)
                     local optBtn = Create("TextButton", {
-                        Parent = dropList,
-                        Size = UDim2.new(1, 0, 0, 32),
-                        BackgroundColor3 = opt == selected and Theme.Accent or Theme.Raised,
-                        BackgroundTransparency = opt == selected and 0.85 or 1,
+                        Parent = scroll,
+                        Size = UDim2.new(1, -2, 0, 28),
+                        BackgroundColor3 = isSel and Theme.Accent or Theme.Hover,
+                        BackgroundTransparency = isSel and 0.8 or 1,
                         Text = opt,
-                        TextColor3 = opt == selected and Theme.Accent or Theme.Text,
-                        TextSize = 12.5,
+                        TextColor3 = isSel and Theme.Accent or Theme.Text,
+                        TextSize = 12,
                         Font = Enum.Font.GothamMedium,
                         AutoButtonColor = false,
-                        ZIndex = 21,
-                    })
+                        ZIndex = 32,
+                    }, { MakeCorner(6) })
+                    optBtn.MouseEnter:Connect(function() if not isSel then Tween(optBtn, { BackgroundTransparency = 0 }, 0.08) end end)
+                    optBtn.MouseLeave:Connect(function() if not isSel then Tween(optBtn, { BackgroundTransparency = 1 }, 0.08) end end)
                     optBtn.MouseButton1Click:Connect(function()
-                        selected = opt
-                        btn:FindFirstChild("SelLabel").Text = selected
-                        dropList:Destroy(); dropList = nil; open = false
-                        if callback then task.spawn(callback, selected) end
+                        if multi then
+                            local idx = table.find(selected, opt)
+                            if idx then table.remove(selected, idx) else table.insert(selected, opt) end
+                            isSel = not isSel
+                            optBtn.BackgroundColor3 = isSel and Theme.Accent or Theme.Hover
+                            optBtn.BackgroundTransparency = isSel and 0.8 or 1
+                            optBtn.TextColor3 = isSel and Theme.Accent or Theme.Text
+                            refreshLabel()
+                            if callback then task.spawn(callback, selected) end
+                        else
+                            selected = opt
+                            refreshLabel()
+                            close()
+                            if callback then task.spawn(callback, selected) end
+                        end
                     end)
                 end
             end)
 
             return {
-                SetValue = function(v) selected = v; btn:FindFirstChild("SelLabel").Text = v end,
+                SetValue = function(v) selected = v; refreshLabel() end,
                 GetValue = function() return selected end,
+                Close = close,
             }
         end
 
-        -- ── TextBox ───────────────────────────────────────────────────────
+        function Tab:AddDropdown(text, options, default, callback)
+            return buildDropdown(text, options, default, false, nil, callback)
+        end
+
+        function Tab:AddMultiDropdown(text, options, default, callback)
+            return buildDropdown(text, options, default, true, nil, callback)
+        end
+
+        -- ── TextBox ──────────────────────────────────────────────────────
         function Tab:AddTextBox(text, placeholder, callback)
             self._order += 1
             local wrapper = Create("Frame", {
                 Name = "TextBox_" .. text,
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, 56),
-                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 70),
+                BackgroundColor3 = Theme.Raised,
+                BackgroundTransparency = 0,
                 LayoutOrder = self._order,
+            }, {
+                MakeCorner(8),
+                Create("UIStroke", { Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
             })
 
             Create("TextLabel", {
                 Parent = wrapper,
                 Text = text,
-                TextColor3 = Theme.TextMuted,
-                TextSize = 11,
+                TextColor3 = Theme.Text,
+                TextSize = 13,
                 Font = Enum.Font.GothamMedium,
-                Size = UDim2.new(1, 0, 0, 16),
+                Size = UDim2.new(1, -28, 0, 18),
+                Position = UDim2.new(0, 14, 0, 10),
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
             })
 
             local box = Create("TextBox", {
                 Parent = wrapper,
-                Size = UDim2.new(1, 0, 0, 34),
-                Position = UDim2.new(0, 0, 0, 20),
-                BackgroundColor3 = Theme.Raised,
+                Size = UDim2.new(1, -20, 0, 30),
+                Position = UDim2.new(0, 10, 0, 32),
+                BackgroundColor3 = Theme.Hover,
                 Text = "",
-                PlaceholderText = placeholder or "Enter value…",
+                PlaceholderText = placeholder or "Enter value...",
                 PlaceholderColor3 = Theme.TextMuted,
                 TextColor3 = Theme.Text,
-                TextSize = 12.5,
+                TextSize = 12,
                 Font = Enum.Font.GothamMedium,
                 ClearTextOnFocus = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
             }, {
                 MakeCorner(6),
-                Create("UIStroke", { Name="BoxStroke", Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
-                MakePadding(0, 12, 0, 12),
+                Create("UIStroke", { Name = "BoxStroke", Color = Theme.Border, Transparency = 0.92, Thickness = 1 }),
+                MakePadding(0, 50, 0, 12),
+                Create("TextLabel", {
+                    Name = "EnterHint",
+                    Text = "Enter",
+                    TextColor3 = Theme.TextMuted,
+                    TextSize = 11,
+                    Font = Enum.Font.GothamMedium,
+                    Size = UDim2.new(0, 40, 1, 0),
+                    Position = UDim2.new(1, -44, 0, 0),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                }),
             })
 
             box.Focused:Connect(function()
-                Tween(box:FindFirstChild("BoxStroke"), { Color = Theme.Accent, Transparency = 0 }, 0.15)
+                Tween(box:FindFirstChild("BoxStroke"), { Color = Theme.Accent, Transparency = 0.2 }, 0.15)
+                Tween(box:FindFirstChild("EnterHint"), { TextColor3 = Theme.Accent }, 0.15)
             end)
             box.FocusLost:Connect(function(enter)
                 Tween(box:FindFirstChild("BoxStroke"), { Color = Theme.Border, Transparency = 0.92 }, 0.15)
+                Tween(box:FindFirstChild("EnterHint"), { TextColor3 = Theme.TextMuted }, 0.15)
                 if enter and callback then task.spawn(callback, box.Text) end
             end)
 
@@ -1045,12 +1234,12 @@ function UILibrary:CreateWindow(title, subtitle)
             SectionLabel(text)
         end
 
-        -- ── Separator ─────────────────────────────────────────────────────
+        -- ── Separator ────────────────────────────────────────────────────
         function Tab:AddSeparator()
             self._order += 1
             Create("Frame", {
                 Parent = tabFrame,
-                Size = UDim2.new(1, -16, 0, 1),
+                Size = UDim2.new(1, 0, 0, 1),
                 BackgroundColor3 = Theme.Border,
                 BackgroundTransparency = 0.92,
                 BorderSizePixel = 0,
