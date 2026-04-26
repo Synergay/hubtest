@@ -322,11 +322,10 @@ function UILibrary:CreateWindow(title, subtitle)
         TextColor3 = Theme.TextMuted,
         TextSize = 14,
         Font = Enum.Font.Gotham,
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, 4),
+        Size = UDim2.new(1, -16, 0, 30),
+        Position = UDim2.new(0, 16, 0, 4),
         BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Padding = UDim.new(0, 16),
     })
 
     -- user at bottom
